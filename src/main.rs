@@ -7,17 +7,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if let Some(arg1) = args.next() {
         println!("WARNING: THIS PROGRAM DOES DESTRUCTIVE CHANGES\n(IT WILL TRIM THE FIRST 5 CHARACTERS OF EVERY FILE OF THE FILES CONTAINED IN THE FOLDER'S PATH PASSED IN)");
+
+        let read_dir = fs::read_dir(arg1.clone())?;
+
         println!("Entered path: {arg1}");
 
         std::io::stdin().read_line(&mut String::new())?;
+        let entries = read_dir.map(|entry| entry.unwrap().path()).collect::<Vec<_>>();
 
-        let read_dir = fs::read_dir(arg1)?;
-
-        for path_item in read_dir {
-            let file_name = path_item?.file_name();
+        for path_item in entries {
+            let file_name = path_item.file_name().unwrap();
 
             //We dont want to rename ourselves
-            if file_name == *self_name {
+            if file_name == self_name {
                 continue;
             }
 
@@ -25,16 +27,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             let trimmed_name_final = trimmed_name.get(5..).unwrap_or_default();
 
-            fs::rename(file_name.clone(), trimmed_name_final)?;
+            fs::rename(file_name, trimmed_name_final)?;
 
-            println!("Renamed {:?} to {:?}", file_name.clone(), trimmed_name_final)
+            println!("Renamed {:?} to {:?}", file_name, trimmed_name_final)
         }
     }
     else {
         println!("Did not input a valid base dierectory path!");
     }
-
-    
 
     Ok(())
 }
